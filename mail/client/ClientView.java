@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 
 /**
@@ -25,31 +27,9 @@ public class ClientView {
 		clientViewer.setTitle("TortugaMail");
 		clientViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		clientViewer.setLayout(new BorderLayout());
-		//Create a panel prompting user for folder selection
-		JPanel selectPanel = new JPanel();
-		selectPanel.setLayout(new BorderLayout());
-		//Folder names to go in the selectPanel
-		String folNames [] = {"Inbox", "Spam"};
-		//Create a listbox contol for selectPanel
-		JList<String> lb = new JList<String>(folNames);
-		//Only one folder is selected at a time
-		lb.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		selectPanel.add(lb);
-		//selectPanel.setVisible(true);
-		clientViewer.add(selectPanel, BorderLayout.PAGE_START);	
+		folderSelector(clientViewer);
+
 		clientViewer.setVisible(true);
-		//Open the right folder on selected option ..... works but too many inputs
-		while(true){
-			//System.out.println(lb.getSelectedIndex());
-			if(lb.getSelectedIndex() == 1){
-				System.out.println("Panel with spam");
-			}
-			else{
-				System.out.println("Panel with inbox");
-			}
-
-		}
-
 	}
 	/**
 	 * Prompt the user for username and password take them in
@@ -83,6 +63,48 @@ public class ClientView {
 		UsrPass combo = new UsrPass(username, password);
 		return combo;
 	}
+	/**
+	 * This is the <code>JPanel</code> for selecting a folder, complete of appropriate <code>ListSelectionListeners</code>
+	 * @param main, the main <code>JFrame</code> that the client is displayed on
+	 */
+	public static void folderSelector(JFrame main){
+		//Create a panel prompting user for folder selection
+		JPanel selectPanel = new JPanel();
+		selectPanel.setLayout(new BorderLayout());
+		main.add(selectPanel, BorderLayout.PAGE_START);	
+		//Folder names to go in the selectPanel
+		String folNames [] = {"Inbox", "Spam"};
+		//Create a listbox contol for selectPanel
+		JList<String> lb = new JList<String>(folNames);
+		//Only one folder is selected at a time
+		lb.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		selectPanel.add(lb);
+		//selectPanel.setVisible(true);		
+		ListSelectionListener folderListener = new ListSelectionListener(){
 
+			@SuppressWarnings("unchecked")
+			@Override
+			public void valueChanged(ListSelectionEvent lse) {
+				boolean adjusting = lse.getValueIsAdjusting();
+				if (!adjusting) {
+					JList<String> list = (JList<String>) lse.getSource();
+					int selections[] = list.getSelectedIndices();
+					//Gets the name of the selection E.G.: Inbox, Spam... no longer needed
+					//Object selectionValues[] = list.getSelectedValues();
+					for (int i = 0, n = selections.length; i < n; i++) {
+						switch(selections[i]){
+						case 0: System.out.println("Inbox");
+						break;
+						case 1: System.out.println("Spam");
+						}
+						//System.out.println(selections[i] + "/" + selectionValues[i] + " ");
+					}
+
+				}
+			}
+		};
+		lb.addListSelectionListener(folderListener);
+
+	}
 
 }
