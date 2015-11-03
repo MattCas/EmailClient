@@ -1,5 +1,5 @@
 /**
- An IMAP/SMPT based Email client for a university assignment
+ *An IMAP/SMPT based Email client for a university assignment
  */
 package mail.client;
 import java.util.Properties;
@@ -20,7 +20,8 @@ public class Client {
 
 
 	/**
-     Initializes the Client by retrieving credentials and lagging in, displays message objects
+     *Initializes the Client by setting properties, IMAP settings, sets up the session gets folders from the <code>store</code> object
+     *@param combo, the Username/Password combination
 	 */
 	public void initializeClient(UsrPass combo){
 		//Create initial variables
@@ -57,8 +58,11 @@ public class Client {
 			e.printStackTrace();
 		}
 		 */
-
-	}
+}
+	/**
+	 * Takes a folder and displays all the objects of the email in it.
+	 * @param f, the <code> IMAPFolder </code>, for instance inbox, spam, etc.
+	 */
 	public static void displayMail(IMAPFolder f){
 		try{
 			if (!f.isOpen()){
@@ -94,6 +98,9 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 *Retrieves user selection for which folder to display
+	 */
 	public void folderSelection(){
 		//prompt user for folder selection
 		Scanner s = new Scanner(System.in);
