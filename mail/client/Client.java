@@ -20,8 +20,9 @@ public class Client {
 
 
 	/**
-     *Initializes the Client by setting properties, IMAP settings, sets up the session gets folders from the <code>store</code> object
-     *@param combo, the Username/Password combination
+	 *Initializes the Client by setting properties, IMAP settings, sets up the session gets folders from the <code>store</code> object
+	 *@param combo, the Username/Password combination
+	 * @return 
 	 */
 	public void initializeClient(UsrPass combo){
 		//Create initial variables
@@ -58,7 +59,13 @@ public class Client {
 			e.printStackTrace();
 		}
 		 */
-}
+	}
+	public IMAPFolder getInbox(){
+		return inbox;
+	}
+	public IMAPFolder getSpam(){
+		return spam;
+	}
 	/**
 	 * Takes a folder and displays all the objects of the email in it.
 	 * @param f, the <code> IMAPFolder </code>, for instance inbox, spam, etc.

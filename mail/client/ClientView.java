@@ -1,16 +1,27 @@
 package mail.client;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import com.sun.mail.imap.IMAPFolder;
 
 
 /**
@@ -19,16 +30,20 @@ import javax.swing.event.ListSelectionListener;
 
 public class ClientView {
 
+	private static final Graphics Graphics = null;
+
 	public static void main(String[] args) {
 		Client c = new Client ();
 		c.initializeClient(getCredentials());
 		JFrame clientViewer = new JFrame();
-		clientViewer.setSize(500,500);
+		clientViewer.setSize(800,600);
+		clientViewer.setResizable(false);
 		clientViewer.setTitle("TortugaMail");
 		clientViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		clientViewer.setLayout(new BorderLayout());
-		folderSelector(clientViewer);
-
+		folderSelector(c, clientViewer);
+		//folderToPanel(c.getInbox(), clientViewer);
+		
 		clientViewer.setVisible(true);
 	}
 	/**
@@ -67,7 +82,7 @@ public class ClientView {
 	 * This is the <code>JPanel</code> for selecting a folder, complete of appropriate <code>ListSelectionListeners</code>
 	 * @param main, the main <code>JFrame</code> that the client is displayed on
 	 */
-	public static void folderSelector(JFrame main){
+	public static void folderSelector(Client c, JFrame main){
 		//Create a panel prompting user for folder selection
 		JPanel selectPanel = new JPanel();
 		selectPanel.setLayout(new BorderLayout());
@@ -79,7 +94,7 @@ public class ClientView {
 		//Only one folder is selected at a time
 		lb.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		selectPanel.add(lb);
-		//selectPanel.setVisible(true);		
+		//add listener	
 		ListSelectionListener folderListener = new ListSelectionListener(){
 
 			@SuppressWarnings("unchecked")
@@ -89,15 +104,16 @@ public class ClientView {
 				if (!adjusting) {
 					JList<String> list = (JList<String>) lse.getSource();
 					int selections[] = list.getSelectedIndices();
-					//Gets the name of the selection E.G.: Inbox, Spam... no longer needed
-					//Object selectionValues[] = list.getSelectedValues();
+					//BorderLayout lay = (BorderLayout) main.getLayout();
+					//Display the selected folder
 					for (int i = 0, n = selections.length; i < n; i++) {
 						switch(selections[i]){
-						case 0: System.out.println("Inbox");
+						case 0: folderToPanel(c.getInbox(), main);
 						break;
-						case 1: System.out.println("Spam");
+						case 1: folderToPanel(c.getSpam(), main);
 						}
 						//System.out.println(selections[i] + "/" + selectionValues[i] + " ");
+						//main.remove(lay.getLayoutComponent(BorderLayout.LINE_START));
 					}
 
 				}
@@ -105,6 +121,48 @@ public class ClientView {
 		};
 		lb.addListSelectionListener(folderListener);
 
+	}
+
+	public static void folderToPanel(IMAPFolder f, JFrame main){
+		/**if (main.getComponentCount() > 1){
+		main.remove(main.getComponent(1));
+		} */
+		Dimension dim = new Dimension(300, 200);
+		JPanel folPanel = new JPanel();
+		//folPanel.setSize(300, 200);
+		folPanel.setMaximumSize(dim);
+		//folPanel.setSize((int)(main.getWidth()/3),(int) (main.getHeight()/3));
+		folPanel.setLayout(new BoxLayout(folPanel, 0));
+		String subjects [] = new String[5000];
+		try{
+			if (!f.isOpen()){
+				f.open(Folder.READ_WRITE);
+			}
+			Message thisFolder [] = f.getMessages();
+			int counter = 0;	
+			//Iterate through each message from folder inboxes, calling it inboxMessage within this loop
+			for (Message currentMessage:thisFolder){
+				//Add all message objects to the subjects array
+				subjects[counter] = (currentMessage.getSubject()); 
+				counter++;
+			}		
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+		//String objects [] = new String [subjects.length];
+		//objects = subjects;
+		JList<String> emailObjs = new JList<String> (subjects);
+		emailObjs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		folPanel.add(emailObjs);
+		//JScrollPane scroll = new JScrollPane(folPanel);
+		main.add(folPanel, BorderLayout.LINE_START);	
+		//Border border;
+		folPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+		
+		
+		System.out.println(main.getComponentCount());
+		System.out.println(folPanel.getComponentCount());
+	
 	}
 
 }
