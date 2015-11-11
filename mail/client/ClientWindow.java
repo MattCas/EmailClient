@@ -5,6 +5,8 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
 import java.awt.event.ActionListener;
@@ -14,9 +16,12 @@ import javax.swing.JTextArea;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import com.jgoodies.forms.factories.DefaultComponentFactory;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
+
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 
+@SuppressWarnings("serial")
 public class ClientWindow extends JFrame {
 
 	private JPanel contentPane;
@@ -25,6 +30,7 @@ public class ClientWindow extends JFrame {
 	public static ClientModel m = new ClientModel(c);
 	public JScrollPane scrollInbox = new JScrollPane();
 	public JScrollPane scrollSpam = new JScrollPane();
+	public JTextArea emailBodyView = new JTextArea();
 
 	/**
 	 * Launch the application.
@@ -42,6 +48,34 @@ public class ClientWindow extends JFrame {
 	 * Create the frame.
 	 */
 	public ClientWindow() {
+		//Implememnt the list selection interface
+		ListSelectionListener listSelectionListener = new ListSelectionListener() {
+			@SuppressWarnings({ "static-access" })
+			public void valueChanged(ListSelectionEvent lse) {
+				boolean adjust = lse.getValueIsAdjusting();
+				if (!adjust) {
+					JList list = (JList) lse.getSource();
+					int selections[] = list.getSelectedIndices();
+					for (int i = 0, n = selections.length; i < n; i++) {
+						//emailBodyView.setText(m.displayInboxMessage(selections[i]);
+						emailBodyView.setBounds(301, 33, 293, 159);
+						 try {
+							 emailBodyView.setText(m.displayInboxMessage(selections[i]));
+						} catch (javax.mail.MessagingException e) {
+							e.printStackTrace();
+						} 
+						
+						contentPane.add(emailBodyView);
+						contentPane.revalidate();
+						contentPane.repaint();
+					}
+					//System.out.println();
+				}
+			}
+		};
+
+
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 600);
 		contentPane = new JPanel();
@@ -58,11 +92,14 @@ public class ClientWindow extends JFrame {
 				//Stick all subjects in a scrollPane
 				scrollInbox = new JScrollPane(listIn);
 				scrollInbox.setBounds(6, 33, 292, 159);
+				listIn.addListSelectionListener(listSelectionListener);
 				scrollSpam.setVisible(false);;
 				contentPane.add(scrollInbox);
 				contentPane.revalidate();
 				contentPane.repaint();
+
 				//scrollSpam.setVisible(false);
+				//listIn.addListSelectionListener(objectListener);
 				scrollInbox.setVisible(true);
 			}
 		});
@@ -91,10 +128,7 @@ public class ClientWindow extends JFrame {
 		contentPane.add(rdbtnSpam);
 
 
-		JTextArea txtrStickEmailContents = new JTextArea();
-		txtrStickEmailContents.setText("Stick email contents here");
-		txtrStickEmailContents.setBounds(301, 33, 293, 159);
-		contentPane.add(txtrStickEmailContents);
+
 
 		JEditorPane toEdit = new JEditorPane();
 		toEdit.setBounds(99, 204, 402, 16);
@@ -139,4 +173,7 @@ public class ClientWindow extends JFrame {
 
 
 	}
+
+
+
 }

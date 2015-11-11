@@ -16,6 +16,7 @@ import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Part;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -25,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -41,8 +43,9 @@ import com.sun.mail.imap.IMAPFolder;
 
 public class ClientModel {
 
+	private static Client c;
 	public ClientModel(Client c){
-		
+		this.c = c;
 	}
 	/**
 	public static void main(String[] args) {
@@ -215,8 +218,41 @@ public class ClientModel {
 		
 
 	}
-	public static void displayMessage(Message m) throws MessagingException{
-		//System.out.println("the number of this mofo is " + m.getMessageNumber());
+	public static String displayInboxMessage(int i) throws MessagingException{
+		IMAPFolder f = c.getInbox();
+		String s = "";
+		try{
+			if (!f.isOpen()){
+				f.open(Folder.READ_WRITE);
+			}
+			
+			Message inboxes [] = f.getMessages();
+			Message inboxMessage = inboxes [i];
+			inboxes [i].setFlag(Flags.Flag.SEEN, true);
+			
+		//Check the content type of the email, if PLAIN/TEXT then we display it normally, if Multipart then deal with it
+		if (inboxMessage.getContentType().contains("TEXT/PLAIN")){
+			s= ((String) inboxMessage.getContent());
+		}
+		else{
+			s= "Cannot display this eMail as it's content is not plain text" ;
+			/**
+			//Decompose and print multipart message body (MIME)
+			Multipart body = (Multipart)inboxMessage.getContent();
+			System.out.println("==================" + body.getCount() + "==================");
+			for(int i = 0; i < body.getCount(); i++){
+				BodyPart bodyPart = body.getBodyPart(i);
+				System.out.println(bodyPart.getContentType());
+				System.out.println(bodyPart.getContent().toString());
+			}
+		}
+			 */	
+		}
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return s;
 	}
 
 }

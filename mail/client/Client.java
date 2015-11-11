@@ -71,6 +71,7 @@ public class Client {
 	 * @param f, the <code> IMAPFolder </code>, for instance inbox, spam, etc.
 	 */
 	public static void displayMail(IMAPFolder f){
+		
 		try{
 			if (!f.isOpen()){
 				f.open(Folder.READ_WRITE);
