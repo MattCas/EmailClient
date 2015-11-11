@@ -4,11 +4,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -16,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
@@ -25,13 +36,15 @@ import com.sun.mail.imap.IMAPFolder;
 
 
 /**
- *Displays the client on a <code>JFrame</code> 
+ *Models the client later displayed by <code>ClientWindow</code> 
  */
 
-public class ClientView {
+public class ClientModel {
 
-	private static final Graphics Graphics = null;
-
+	public ClientModel(Client c){
+		
+	}
+	/**
 	public static void main(String[] args) {
 		Client c = new Client ();
 		c.initializeClient(getCredentials());
@@ -40,12 +53,13 @@ public class ClientView {
 		clientViewer.setResizable(false);
 		clientViewer.setTitle("TortugaMail");
 		clientViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		clientViewer.setLayout(new BorderLayout());
+		clientViewer.setLayout(new GridBagLayout());
 		folderSelector(c, clientViewer);
-		//folderToPanel(c.getInbox(), clientViewer);
-		
+
 		clientViewer.setVisible(true);
 	}
+	*/
+	
 	/**
 	 * Prompt the user for username and password take them in
 	 * @return combo, the username/password combination
@@ -55,6 +69,7 @@ public class ClientView {
 		String password = "";
 		//Retrieve username from User using JTextField
 		JTextField u = new JTextField(40);
+		u.setText("matthiascasula@gmail.com");
 		int uAction = JOptionPane.showConfirmDialog(null, u, "Enter your Username", JOptionPane.OK_CANCEL_OPTION);
 		if (uAction > 0){
 			//Error if user cancelled (YES!)
@@ -66,6 +81,7 @@ public class ClientView {
 		}
 		//Retrieve password from user using JPasswordField 
 		JPasswordField p = new JPasswordField(15);
+		p.setText("mattias92");
 		int pAction = JOptionPane.showConfirmDialog(null, p, "Enter your Password", JOptionPane.OK_CANCEL_OPTION);
 		if (pAction > 0){
 			//Error if user cancelled
@@ -83,10 +99,13 @@ public class ClientView {
 	 * @param main, the main <code>JFrame</code> that the client is displayed on
 	 */
 	public static void folderSelector(Client c, JFrame main){
+		JButton button;
+
 		//Create a panel prompting user for folder selection
 		JPanel selectPanel = new JPanel();
-		selectPanel.setLayout(new BorderLayout());
-		main.add(selectPanel, BorderLayout.PAGE_START);	
+		main.add(selectPanel);	
+
+		/**
 		//Folder names to go in the selectPanel
 		String folNames [] = {"Inbox", "Spam"};
 		//Create a listbox contol for selectPanel
@@ -108,7 +127,7 @@ public class ClientView {
 					//Display the selected folder
 					for (int i = 0, n = selections.length; i < n; i++) {
 						switch(selections[i]){
-						case 0: folderToPanel(c.getInbox(), main);
+						case 0: folderToList(c.getInbox());
 						break;
 						case 1: folderToPanel(c.getSpam(), main);
 						}
@@ -120,49 +139,84 @@ public class ClientView {
 			}
 		};
 		lb.addListSelectionListener(folderListener);
-
+		 */
 	}
 
-	public static void folderToPanel(IMAPFolder f, JFrame main){
-		/**if (main.getComponentCount() > 1){
+	public static JList<String> folderToList(IMAPFolder f){
+		/**if (main.getComponentCount() > 2){
 		main.remove(main.getComponent(1));
 		} */
-		Dimension dim = new Dimension(300, 200);
-		JPanel folPanel = new JPanel();
-		//folPanel.setSize(300, 200);
-		folPanel.setMaximumSize(dim);
-		//folPanel.setSize((int)(main.getWidth()/3),(int) (main.getHeight()/3));
-		folPanel.setLayout(new BoxLayout(folPanel, 0));
-		String subjects [] = new String[5000];
+		DefaultListModel<String> objects = new DefaultListModel<String>();
 		try{
 			if (!f.isOpen()){
 				f.open(Folder.READ_WRITE);
 			}
-			Message thisFolder [] = f.getMessages();
-			int counter = 0;	
+			Message thisFolder [] = f.getMessages();	
 			//Iterate through each message from folder inboxes, calling it inboxMessage within this loop
 			for (Message currentMessage:thisFolder){
-				//Add all message objects to the subjects array
-				subjects[counter] = (currentMessage.getSubject()); 
-				counter++;
+				//Add all message objects to the objects ListModel
+				if (currentMessage.isSet(Flags.Flag.SEEN)){
+					objects.addElement("READ  " + currentMessage.getSubject());					
+				}
+				else{
+					objects.addElement("UNREAD  " + currentMessage.getSubject());
+				}
+				
 			}		
 		} catch (Exception e){
 			e.printStackTrace();
 		}
-		//String objects [] = new String [subjects.length];
-		//objects = subjects;
-		JList<String> emailObjs = new JList<String> (subjects);
+
+		JList<String> emailObjs = new JList<String> (objects);
 		emailObjs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		folPanel.add(emailObjs);
-		//JScrollPane scroll = new JScrollPane(folPanel);
-		main.add(folPanel, BorderLayout.LINE_START);	
-		//Border border;
-		folPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+		return emailObjs;
 		
 		
-		System.out.println(main.getComponentCount());
-		System.out.println(folPanel.getComponentCount());
-	
+		/**
+		//add listener	
+		ListSelectionListener objectListener = new ListSelectionListener(){
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public void valueChanged(ListSelectionEvent lse) {
+				boolean adjusting = lse.getValueIsAdjusting();
+				if (!adjusting) {
+					JList<String> list = (JList<String>) lse.getSource();
+					int selections[] = list.getSelectedIndices();
+
+					//Display the selected folder
+					for (int i = 0, n = selections.length; i < n; i++) {
+						while (!(i < 0)){
+							try {
+								System.out.println(i);
+								displayMessage(f.getMessage(i));
+							} catch (MessagingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
+							//case 1: folderToPanel(c.getSpam(), main);
+						}
+						//System.out.println(selections[i] + "/" + selectionValues[i] + " ");
+						//main.remove(lay.getLayoutComponent(BorderLayout.LINE_START));
+					}
+
+				}
+			}
+		};
+		//Close the folder after getting all the messages
+		/** try {
+			f.close(true);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		//emailObjs.addListSelectionListener(objectListener);
+		
+
+	}
+	public static void displayMessage(Message m) throws MessagingException{
+		//System.out.println("the number of this mofo is " + m.getMessageNumber());
 	}
 
 }
