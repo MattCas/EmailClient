@@ -1,7 +1,5 @@
 package mail.client;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -16,11 +14,14 @@ import javax.swing.JTextArea;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import com.jgoodies.forms.factories.DefaultComponentFactory;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
-
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 
+/**
+ * This class creates a <code>JFrame</code> on the <code>ClientModel</code> will be displayed.
+ * @author Matthias Casula
+ * @version 1.1
+ */
 @SuppressWarnings("serial")
 public class ClientWindow extends JFrame {
 
@@ -30,7 +31,7 @@ public class ClientWindow extends JFrame {
 	public static ClientModel m = new ClientModel(c);
 	public JScrollPane scrollInbox = new JScrollPane();
 	public JScrollPane scrollSpam = new JScrollPane();
-	public JTextArea emailBodyView = new JTextArea();
+	public JTextArea emailBody = new JTextArea();
 
 	/**
 	 * Launch the application.
@@ -38,18 +39,15 @@ public class ClientWindow extends JFrame {
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
 		c.initializeClient(m.getCredentials());
-
 		ClientWindow frame = new ClientWindow();
-
 		frame.setVisible(true);
 	}
-
 	/**
 	 * Create the frame.
 	 */
 	public ClientWindow() {
-		//Implememnt the list selection interface
-		ListSelectionListener listSelectionListener = new ListSelectionListener() {
+		//Implememnt the list selection interface for inbox
+		ListSelectionListener inboxSelectionListener = new ListSelectionListener() {
 			@SuppressWarnings({ "static-access" })
 			public void valueChanged(ListSelectionEvent lse) {
 				boolean adjust = lse.getValueIsAdjusting();
@@ -58,23 +56,44 @@ public class ClientWindow extends JFrame {
 					int selections[] = list.getSelectedIndices();
 					for (int i = 0, n = selections.length; i < n; i++) {
 						//emailBodyView.setText(m.displayInboxMessage(selections[i]);
-						emailBodyView.setBounds(301, 33, 293, 159);
+						emailBody.setBounds(301, 33, 293, 159);
 						 try {
-							 emailBodyView.setText(m.displayInboxMessage(selections[i]));
+							 emailBody.setText(m.displayMessage(selections[i], c.getInbox()));
 						} catch (javax.mail.MessagingException e) {
 							e.printStackTrace();
 						} 
-						
-						contentPane.add(emailBodyView);
+						emailBody.setEditable(false);
+						contentPane.add(emailBody);
 						contentPane.revalidate();
 						contentPane.repaint();
 					}
-					//System.out.println();
 				}
 			}
 		};
-
-
+		
+		//Implememnt the list selection interface
+		ListSelectionListener spamSelectionListener = new ListSelectionListener() {
+			@SuppressWarnings({ "static-access" })
+			public void valueChanged(ListSelectionEvent lse) {
+				boolean adjust = lse.getValueIsAdjusting();
+				if (!adjust) {
+					JList list = (JList) lse.getSource();
+					int selections[] = list.getSelectedIndices();
+					for (int i = 0, n = selections.length; i < n; i++) {
+						emailBody.setBounds(301, 33, 293, 159);
+						 try {
+							 emailBody.setText(m.displayMessage(selections[i], c.getSpam()));
+						} catch (javax.mail.MessagingException e) {
+							e.printStackTrace();
+						} 
+						emailBody.setEditable(false);
+						contentPane.add(emailBody);
+						contentPane.revalidate();
+						contentPane.repaint();
+					}
+				}
+			}
+		};
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 600);
@@ -92,14 +111,12 @@ public class ClientWindow extends JFrame {
 				//Stick all subjects in a scrollPane
 				scrollInbox = new JScrollPane(listIn);
 				scrollInbox.setBounds(6, 33, 292, 159);
-				listIn.addListSelectionListener(listSelectionListener);
+				listIn.addListSelectionListener(inboxSelectionListener);
 				scrollSpam.setVisible(false);;
 				contentPane.add(scrollInbox);
 				contentPane.revalidate();
 				contentPane.repaint();
 
-				//scrollSpam.setVisible(false);
-				//listIn.addListSelectionListener(objectListener);
 				scrollInbox.setVisible(true);
 			}
 		});
@@ -111,11 +128,12 @@ public class ClientWindow extends JFrame {
 		rdbtnSpam.addActionListener(new ActionListener() {
 			@SuppressWarnings("static-access")
 			public void actionPerformed(ActionEvent e) {
-				JList<String> list = new JList<String>();
-				list = m.folderToList(c.getSpam());
+				JList<String> listSp = new JList<String>();
+				listSp = m.folderToList(c.getSpam());
 				//Stick all subjects in a scrollPane
-				scrollSpam = new JScrollPane(list);
+				scrollSpam = new JScrollPane(listSp);
 				scrollSpam.setBounds(6, 33, 292, 159);
+				listSp.addListSelectionListener(spamSelectionListener);
 				scrollInbox.setVisible(false);
 				contentPane.add(scrollSpam);
 				contentPane.revalidate();
@@ -158,11 +176,21 @@ public class ClientWindow extends JFrame {
 		lblBody.setBounds(31, 273, 41, 16);
 		contentPane.add(lblBody);
 
-		JEditorPane editorPane = new JEditorPane();
-		editorPane.setBounds(99, 278, 401, 173);
-		contentPane.add(editorPane);
+		JEditorPane bodyEdit = new JEditorPane();
+		bodyEdit.setBounds(99, 278, 401, 173);
+		contentPane.add(bodyEdit);
 
 		JButton btnSendEmail = new JButton("Send Email");
+		btnSendEmail.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String to = toEdit.getText();
+				String cc = ccEdit.getText();
+				String subj = subjectEdit.getText();
+				String body = bodyEdit.getText();
+				Sender s = new Sender(m.getCredentials(), to, cc, subj, body);
+				s.send();
+			}
+		});
 		btnSendEmail.setBounds(99, 463, 117, 29);
 		contentPane.add(btnSendEmail);
 

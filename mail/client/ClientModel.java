@@ -1,23 +1,9 @@
 package mail.client;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.List;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.mail.Flags;
-import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Part;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,44 +11,29 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
 import com.sun.mail.imap.IMAPFolder;
 
 
 /**
  *Models the client later displayed by <code>ClientWindow</code> 
+ * @author Matthias Casula
+ * @version 1.1
  */
 
 public class ClientModel {
 
 	private static Client c;
+	public static UsrPass combo;
+	public static String username;
+	public static String password;
+	
 	public ClientModel(Client c){
 		this.c = c;
 	}
-	/**
-	public static void main(String[] args) {
-		Client c = new Client ();
-		c.initializeClient(getCredentials());
-		JFrame clientViewer = new JFrame();
-		clientViewer.setSize(800,600);
-		clientViewer.setResizable(false);
-		clientViewer.setTitle("TortugaMail");
-		clientViewer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		clientViewer.setLayout(new GridBagLayout());
-		folderSelector(c, clientViewer);
 
-		clientViewer.setVisible(true);
-	}
-	*/
-	
+
 	/**
 	 * Prompt the user for username and password take them in
 	 * @return combo, the username/password combination
@@ -164,7 +135,7 @@ public class ClientModel {
 				else{
 					objects.addElement("UNREAD  " + currentMessage.getSubject());
 				}
-				
+
 			}		
 		} catch (Exception e){
 			e.printStackTrace();
@@ -173,8 +144,8 @@ public class ClientModel {
 		JList<String> emailObjs = new JList<String> (objects);
 		emailObjs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		return emailObjs;
-		
-		
+
+
 		/**
 		//add listener	
 		ListSelectionListener objectListener = new ListSelectionListener(){
@@ -215,44 +186,37 @@ public class ClientModel {
 			e.printStackTrace();
 		}*/
 		//emailObjs.addListSelectionListener(objectListener);
-		
+
 
 	}
-	public static String displayInboxMessage(int i) throws MessagingException{
-		IMAPFolder f = c.getInbox();
+	public static String displayMessage(int i, IMAPFolder f) throws MessagingException{
 		String s = "";
 		try{
 			if (!f.isOpen()){
 				f.open(Folder.READ_WRITE);
 			}
-			
+
 			Message inboxes [] = f.getMessages();
 			Message inboxMessage = inboxes [i];
 			inboxes [i].setFlag(Flags.Flag.SEEN, true);
-			
-		//Check the content type of the email, if PLAIN/TEXT then we display it normally, if Multipart then deal with it
-		if (inboxMessage.getContentType().contains("TEXT/PLAIN")){
-			s= ((String) inboxMessage.getContent());
-		}
-		else{
-			s= "Cannot display this eMail as it's content is not plain text" ;
-			/**
-			//Decompose and print multipart message body (MIME)
-			Multipart body = (Multipart)inboxMessage.getContent();
-			System.out.println("==================" + body.getCount() + "==================");
-			for(int i = 0; i < body.getCount(); i++){
-				BodyPart bodyPart = body.getBodyPart(i);
-				System.out.println(bodyPart.getContentType());
-				System.out.println(bodyPart.getContent().toString());
+
+			//Check the content type of the email, if PLAIN/TEXT then we display it normally, if Multipart then deal with it
+			if (inboxMessage.getContentType().contains("TEXT/PLAIN")){
+				s = ((String) inboxMessage.getContent());
 			}
-		}
-			 */	
-		}
-			
+			else{
+				s = "Cannot display eMail as it's not plain text." ;
+			}
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 		return s;
 	}
-
+	public static String getUsername(){
+		return combo.getUsername();
+	}
+	public static String getPassword(){
+		return combo.getPassword();
+	}
 }
