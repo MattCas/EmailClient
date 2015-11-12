@@ -8,10 +8,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.awt.event.ActionEvent;
 import javax.swing.JList;
 import javax.swing.JTextArea;
 import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import com.jgoodies.forms.factories.DefaultComponentFactory;
 import javax.swing.JButton;
@@ -32,6 +34,8 @@ public class ClientWindow extends JFrame {
 	public JScrollPane scrollInbox = new JScrollPane();
 	public JScrollPane scrollSpam = new JScrollPane();
 	public JTextArea emailBody = new JTextArea();
+	public Sender s;
+	public File att;
 
 	/**
 	 * Launch the application.
@@ -187,7 +191,12 @@ public class ClientWindow extends JFrame {
 				String cc = ccEdit.getText();
 				String subj = subjectEdit.getText();
 				String body = bodyEdit.getText();
-				Sender s = new Sender(m.getCredentials(), to, cc, subj, body);
+				s = new Sender(m.getCredentials(), to, cc, subj, body);
+				try{
+					s.setAttachment(att);					
+				} catch (Exception exc){
+					exc.printStackTrace();
+				}
 				s.send();
 			}
 		});
@@ -195,8 +204,29 @@ public class ClientWindow extends JFrame {
 		contentPane.add(btnSendEmail);
 
 		JButton btnEraseAllFields = new JButton("Erase all fields");
+		btnEraseAllFields.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				toEdit.setText("");
+				ccEdit.setText("");
+				subjectEdit.setText("");
+				bodyEdit.setText("");
+			}
+		});
 		btnEraseAllFields.setBounds(384, 463, 117, 29);
 		contentPane.add(btnEraseAllFields);
+		
+		JButton btnAttatchFile = new JButton("Attatch file");
+		btnAttatchFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fc = new JFileChooser();
+				fc.showOpenDialog(contentPane);
+				att = fc.getSelectedFile();
+				
+				
+			}
+		});
+		btnAttatchFile.setBounds(234, 463, 117, 29);
+		contentPane.add(btnAttatchFile);
 
 
 
